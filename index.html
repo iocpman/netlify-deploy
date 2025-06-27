@@ -1,516 +1,142 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>제주 2박 3일 여행 플래너</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
-    <!-- Chosen Palette: Warm Neutral Harmony -->
-    <!-- Application Structure Plan: The application is designed as a single-page tabbed interface for maximum usability. The key information is divided into four main sections: '체크리스트' (Checklist), '상세일정' (Itinerary), '주의사항' (Precautions), and '정보' (Info). This structure prevents information overload by allowing users to navigate directly to the content they need. The 'Checklist' serves as a quick-start guide for critical tasks. The 'Itinerary' is the core interactive component, using toggles to compare recommended options, making planning more engaging. 'Precautions' and 'Info' use accordions and charts to present dense information and data in a digestible format. This user-centric design transforms a static document into a dynamic and easy-to-use tool for the travel group. -->
-    <!-- Visualization & Content Choices: 
-        - Itinerary: Goal(Compare/Organize) -> Interactive Toggles -> Users can click buttons to instantly see details for different food/activity options, making decision-making collaborative and easy. Implemented with JS data objects and DOM manipulation.
-        - Precautions: Goal(Inform/Warn) -> Accordion Menu -> Dense but crucial information about flights, rental cars, etc., is hidden by default to keep the UI clean. Users can expand sections as needed. Implemented with JS toggle classes.
-        - Weather Data: Goal(Inform/Compare) -> Bar Chart (Chart.js) -> Visualizing temperature and rainfall data makes the climate realities of Jeju's rainy season more impactful than text alone. Implemented with Chart.js on a Canvas element within a responsive container.
-        - Packing List: Goal(Inform) -> Styled Checklist -> A simple, clear HTML list format that is intuitive for its purpose.
-        - This design uses interactivity to simplify complex information and aid user comprehension, all within the required technical constraints.
-    -->
-    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
-    <style>
-        body { font-family: 'Noto Sans KR', sans-serif; }
-        .tab-active { border-color: #0d9488; color: #0d9488; font-weight: 700; }
-        .tab-inactive { border-color: transparent; color: #6b7280; }
-        .accordion-content { max-height: 0; overflow: hidden; transition: max-height 0.3s ease-out; }
-        .recommendation-btn-active { background-color: #0d9488; color: white; }
-        .recommendation-btn-inactive { background-color: #f0fdfa; color: #115e59; }
-        .chart-container { position: relative; width: 100%; max-width: 600px; margin-left: auto; margin-right: auto; height: 300px; max-height: 400px; }
-        @media (min-width: 768px) { .chart-container { height: 350px; } }
-    </style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>제주 2박 3일 여행 가이드</title>
+<style>
+    :root {
+        --accent: #ff785a;
+        --bg: #fafafa;
+        --txt: #333;
+    }
+    * { box-sizing: border-box; }
+    body {
+        margin: 0;
+        font-family: system-ui, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+        color: var(--txt);
+        background: var(--bg);
+        line-height: 1.6;
+    }
+    header {
+        background: var(--accent);
+        color: #fff;
+        padding: 1rem;
+        text-align: center;
+    }
+    main { max-width: 900px; margin: auto; padding: 1.5rem 1rem; }
+    h2, h3 { margin: 1.2rem 0 0.6rem; }
+    ul { margin: 0.2rem 0 1rem 1.2rem; padding: 0; }
+    li { margin-bottom: .4rem; }
+    section { margin-bottom: 2rem; }
+    /* 일정 그리드 */
+    .schedule { display: grid; grid-template-columns: 90px 1fr; gap: .4rem .8rem; }
+    .schedule div:first-child { font-weight: 600; }
+    /* 컬러 칩 */
+    .chip {
+        display: inline-block;
+        background: #eee;
+        padding: .15rem .55rem;
+        border-radius: 4px;
+        font-size: .84rem;
+        margin-left: .4rem;
+    }
+    @media (max-width:600px) {
+        .schedule { grid-template-columns: 1fr; }
+        .schedule div:first-child { font-weight: 700; }
+    }
+    footer { font-size: .8rem; color:#777; text-align:center; margin:2rem 0 1rem; }
+</style>
 </head>
-<body class="bg-slate-50">
+<body>
+<header>
+    <h1>제주 2박 3일 여행 가이드 (6 월 27‑29 일)</h1>
+</header>
 
-    <div class="container mx-auto max-w-4xl p-4 sm:p-6">
-        
-        <header class="text-center mb-8">
-            <h1 class="text-3xl sm:text-4xl font-bold text-teal-800">제주, 우리만의 완벽한 2박 3일</h1>
-            <p class="text-slate-600 mt-2 text-lg">인터랙티브 여행 가이드</p>
-        </header>
+<main>
+    <!-- 날씨 -->
+    <section id="weather">
+        <h2>날씨 ☀️🌦️</h2>
+        <ul>
+            <li>평균&nbsp;24 – 28 ℃ / 밤&nbsp;18 – 20 ℃, 습함</li>
+            <li>6월 중순부터 장마 → 소나기 대비 우산·우비 필수</li>
+            <li>자외선 매우 강함 → 모자·선글라스·선크림 수시 도포</li>
+            <li>바닷물 온도 20 ℃ 안팎. 물놀이 시 체온 유지 주의</li>
+        </ul>
+    </section>
 
-        <nav class="flex border-b-2 border-slate-200 mb-8">
-            <button data-tab="checklist" class="tab-btn flex-1 py-3 text-center border-b-4 transition-all duration-300 tab-active">✔️ 핵심 체크리스트</button>
-            <button data-tab="itinerary" class="tab-btn flex-1 py-3 text-center border-b-4 transition-all duration-300 tab-inactive">🗓️ 상세 일정</button>
-            <button data-tab="precautions" class="tab-btn flex-1 py-3 text-center border-b-4 transition-all duration-300 tab-inactive">⚠️ 필수 주의사항</button>
-            <button data-tab="info" class="tab-btn flex-1 py-3 text-center border-b-4 transition-all duration-300 tab-inactive">☀️ 날씨 & 정보</button>
-        </nav>
+    <!-- 일정 -->
+    <section id="plan">
+        <h2>일정 🗓️</h2>
 
-        <main>
-            <!-- 핵심 체크리스트 섹션 -->
-            <section id="checklist" class="tab-content">
-                <div class="bg-white p-6 rounded-xl shadow-md">
-                    <h2 class="text-2xl font-bold text-teal-700 mb-4">떠나기 전, 이것만은 꼭!</h2>
-                    <p class="text-slate-600 mb-6">
-                        성공적인 여행을 위해 가장 중요한 핵심 사항들입니다. 각 항목을 꼼꼼히 확인해서 놓치는 일 없도록 준비합시다. 자세한 내용은 각 탭에서 확인할 수 있습니다.
-                    </p>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div class="bg-teal-50 p-4 rounded-lg border-l-4 border-teal-500">
-                            <h3 class="font-bold text-teal-800">렌터카 야간 인수 확인</h3>
-                            <p class="text-sm text-teal-700">21시 렌트! 항공 지연 대비, 업체에 전화해 최종 인수 시간과 절차를 반드시 확인하세요.</p>
-                        </div>
-                        <div class="bg-amber-50 p-4 rounded-lg border-l-4 border-amber-500">
-                            <h3 class="font-bold text-amber-800">수하물 15kg 기준!</h3>
-                            <p class="text-sm text-amber-700">항공사마다 규정이 달라요. 가장 엄격한 티웨이항공 15kg에 맞춰 짐을 준비해야 추가요금을 피할 수 있습니다.</p>
-                        </div>
-                        <div class="bg-sky-50 p-4 rounded-lg border-l-4 border-sky-500">
-                            <h3 class="font-bold text-sky-800">개인 세면도구 필수</h3>
-                            <p class="text-sm text-sky-700">법 개정으로 숙소에서 칫솔/치약 등 일회용품을 제공하지 않아요. 꼭 개인적으로 챙겨야 합니다.</p>
-                        </div>
-                        <div class="bg-rose-50 p-4 rounded-lg border-l-4 border-rose-500">
-                            <h3 class="font-bold text-rose-800">장마철 날씨 대비</h3>
-                            <p class="text-sm text-rose-700">폭우 가능성! 방수되는 바람막이, 여벌 옷, 젖지 않는 신발은 선택이 아닌 필수입니다.</p>
-                        </div>
-                    </div>
-                </div>
-            </section>
+        <h3>27 일 (금)</h3>
+        <div class="schedule">
+            <div>18:00</div><div>김포공항 도착</div>
+            <div>19:00</div><div>김포 → 제주 (티웨이항공)</div>
+            <div>20:00</div><div>제주공항 도착</div>
+            <div>21:00</div><div>렌터카 인수</div>
+            <div>22:00</div><div>호미하우스 체크인</div>
+            <div>23:00</div><div>저녁&nbsp;— <span class="chip">편의점 야식</span> or <span class="chip">24시 국밥집</span></div>
+        </div>
 
-            <!-- 상세 일정 섹션 -->
-            <section id="itinerary" class="tab-content hidden">
-                 <div class="bg-white p-6 rounded-xl shadow-md">
-                    <h2 class="text-2xl font-bold text-teal-700 mb-4">우리의 2박 3일 여정</h2>
-                    <p class="text-slate-600 mb-6">
-                        각 날짜의 일정을 확인하고, 추천이 필요한 부분에서는 원하는 옵션을 선택하여 상세 정보를 볼 수 있습니다. 우리의 취향에 맞는 최고의 코스를 함께 만들어 봅시다!
-                    </p>
-                    <div class="space-y-8">
-                        <!-- Day 1 -->
-                        <div class="day-card" data-day="1">
-                            <h3 class="text-xl font-bold text-slate-800 border-b-2 pb-2 mb-4">DAY 1: 설레는 도착, 제주의 첫날 밤</h3>
-                            <ul class="space-y-4">
-                                <li class="flex items-start"><span class="bg-teal-600 text-white text-sm font-bold w-16 text-center rounded-full px-2 py-1 mr-4">18:00</span><span>김포공항 도착 & 수속</span></li>
-                                <li class="flex items-start"><span class="bg-teal-600 text-white text-sm font-bold w-16 text-center rounded-full px-2 py-1 mr-4">19:00</span><span>서울 출발 (티웨이 항공)</span></li>
-                                <li class="flex items-start"><span class="bg-teal-600 text-white text-sm font-bold w-16 text-center rounded-full px-2 py-1 mr-4">20:00</span><span>제주 도착</span></li>
-                                <li class="flex items-start"><span class="bg-teal-600 text-white text-sm font-bold w-16 text-center rounded-full px-2 py-1 mr-4">21:00</span><span>렌터카 인수 (⚠️ 야간 인수 절차 사전 확인 필수!)</span></li>
-                                <li class="flex items-start"><span class="bg-teal-600 text-white text-sm font-bold w-16 text-center rounded-full px-2 py-1 mr-4">22:00</span><span>숙소 체크인 (호미하우스 협재)</span></li>
-                                <li class="flex items-start flex-col">
-                                    <div class="flex items-center w-full"><span class="bg-rose-600 text-white text-sm font-bold w-16 text-center rounded-full px-2 py-1 mr-4">23:00</span><span class="font-semibold">저녁 식사: 제주의 첫 맛</span></div>
-                                    <div class="pl-20 mt-3 w-full">
-                                        <div class="flex space-x-2 mb-3">
-                                            <button class="recommendation-btn flex-1 py-2 px-3 text-sm font-semibold rounded-lg transition-all recommendation-btn-active" data-day="1" data-type="dinner" data-option="option1">🥩 든든한 흑돼지</button>
-                                            <button class="recommendation-btn flex-1 py-2 px-3 text-sm font-semibold rounded-lg transition-all recommendation-btn-inactive" data-day="1" data-type="dinner" data-option="option2">🍜 밤바다 해물라면</button>
-                                        </div>
-                                        <div id="day1-dinner-details" class="bg-slate-50 p-4 rounded-lg text-sm"></div>
-                                    </div>
-                                </li>
-                            </ul>
-                        </div>
-                        <!-- Day 2 -->
-                        <div class="day-card" data-day="2">
-                             <h3 class="text-xl font-bold text-slate-800 border-b-2 pb-2 mb-4">DAY 2: 에메랄드빛 협재 완전 정복</h3>
-                             <ul class="space-y-4">
-                                <li class="flex items-start flex-col">
-                                    <div class="flex items-center w-full"><span class="bg-rose-600 text-white text-sm font-bold w-16 text-center rounded-full px-2 py-1 mr-4">11:00</span><span class="font-semibold">브런치 / 점심</span></div>
-                                    <div class="pl-20 mt-3 w-full">
-                                        <div class="flex space-x-2 mb-3">
-                                            <button class="recommendation-btn flex-1 py-2 px-3 text-sm font-semibold rounded-lg transition-all recommendation-btn-active" data-day="2" data-type="lunch" data-option="option1">🥐 오션뷰 브런치</button>
-                                            <button class="recommendation-btn flex-1 py-2 px-3 text-sm font-semibold rounded-lg transition-all recommendation-btn-inactive" data-day="2" data-type="lunch" data-option="option2">🐟 제주 갈치요리</button>
-                                        </div>
-                                        <div id="day2-lunch-details" class="bg-slate-50 p-4 rounded-lg text-sm"></div>
-                                    </div>
-                                </li>
-                                <li class="flex items-start"><span class="bg-teal-600 text-white text-sm font-bold w-16 text-center rounded-full px-2 py-1 mr-4">13:00</span><span>협재 해수욕장 물놀이</span></li>
-                                <li class="flex items-start flex-col">
-                                    <div class="flex items-center w-full"><span class="bg-sky-600 text-white text-sm font-bold w-16 text-center rounded-full px-2 py-1 mr-4">15:00</span><span class="font-semibold">오후 관광</span></div>
-                                    <div class="pl-20 mt-3 w-full">
-                                        <div class="flex space-x-2 mb-3">
-                                            <button class="recommendation-btn flex-1 py-2 px-3 text-sm font-semibold rounded-lg transition-all recommendation-btn-active" data-day="2" data-type="activity" data-option="option1">🛶 투명 카약</button>
-                                            <button class="recommendation-btn flex-1 py-2 px-3 text-sm font-semibold rounded-lg transition-all recommendation-btn-inactive" data-day="2" data-type="activity" data-option="option2">🌳 한림공원 & 동굴</button>
-                                        </div>
-                                        <div id="day2-activity-details" class="bg-slate-50 p-4 rounded-lg text-sm"></div>
-                                    </div>
-                                </li>
-                                <li class="flex items-start"><span class="bg-teal-600 text-white text-sm font-bold w-16 text-center rounded-full px-2 py-1 mr-4">18:00</span><span>해변에서 일몰 감상</span></li>
-                                <li class="flex items-start flex-col">
-                                    <div class="flex items-center w-full"><span class="bg-rose-600 text-white text-sm font-bold w-16 text-center rounded-full px-2 py-1 mr-4">19:30</span><span class="font-semibold">저녁 식사</span></div>
-                                    <div class="pl-20 mt-3 w-full">
-                                        <div class="flex space-x-2 mb-3">
-                                            <button class="recommendation-btn flex-1 py-2 px-3 text-sm font-semibold rounded-lg transition-all recommendation-btn-active" data-day="2" data-type="dinner" data-option="option1">🍣 퓨전 요리</button>
-                                            <button class="recommendation-btn flex-1 py-2 px-3 text-sm font-semibold rounded-lg transition-all recommendation-btn-inactive" data-day="2" data-type="dinner" data-option="option2">🍲 전통 한식</button>
-                                        </div>
-                                        <div id="day2-dinner-details" class="bg-slate-50 p-4 rounded-lg text-sm"></div>
-                                    </div>
-                                </li>
-                                 <li class="flex items-start"><span class="bg-teal-600 text-white text-sm font-bold w-16 text-center rounded-full px-2 py-1 mr-4">22:00</span><span>숙소 복귀</span></li>
-                            </ul>
-                        </div>
-                        <!-- Day 3 -->
-                        <div class="day-card" data-day="3">
-                             <h3 class="text-xl font-bold text-slate-800 border-b-2 pb-2 mb-4">DAY 3: 아쉬움을 달래는 마지막 풍경</h3>
-                             <ul class="space-y-4">
-                                <li class="flex items-start"><span class="bg-teal-600 text-white text-sm font-bold w-16 text-center rounded-full px-2 py-1 mr-4">10:00</span><span>숙소 체크아웃</span></li>
-                                <li class="flex items-start flex-col">
-                                    <div class="flex items-center w-full"><span class="bg-rose-600 text-white text-sm font-bold w-16 text-center rounded-full px-2 py-1 mr-4">11:00</span><span class="font-semibold">마지막 만찬 (공항 근처)</span></div>
-                                    <div class="pl-20 mt-3 w-full">
-                                        <div class="flex space-x-2 mb-3">
-                                            <button class="recommendation-btn flex-1 py-2 px-3 text-sm font-semibold rounded-lg transition-all recommendation-btn-active" data-day="3" data-type="lunch" data-option="option1">🍜 제주 고기국수</button>
-                                            <button class="recommendation-btn flex-1 py-2 px-3 text-sm font-semibold rounded-lg transition-all recommendation-btn-inactive" data-day="3" data-type="lunch" data-option="option2">🍝 캐주얼 양식</button>
-                                        </div>
-                                        <div id="day3-lunch-details" class="bg-slate-50 p-4 rounded-lg text-sm"></div>
-                                    </div>
-                                </li>
-                                 <li class="flex items-start flex-col">
-                                    <div class="flex items-center w-full"><span class="bg-sky-600 text-white text-sm font-bold w-16 text-center rounded-full px-2 py-1 mr-4">14:00</span><span class="font-semibold">마지막 관광</span></div>
-                                    <div class="pl-20 mt-3 w-full">
-                                        <div class="flex space-x-2 mb-3">
-                                            <button class="recommendation-btn flex-1 py-2 px-3 text-sm font-semibold rounded-lg transition-all recommendation-btn-active" data-day="3" data-type="activity" data-option="option1">✈️ 도두봉 (비행기 뷰)</button>
-                                            <button class="recommendation-btn flex-1 py-2 px-3 text-sm font-semibold rounded-lg transition-all recommendation-btn-inactive" data-day="3" data-type="activity" data-option="option2">🍵 오설록 티 뮤지엄</button>
-                                        </div>
-                                        <div id="day3-activity-details" class="bg-slate-50 p-4 rounded-lg text-sm"></div>
-                                    </div>
-                                </li>
-                                <li class="flex items-start"><span class="bg-teal-600 text-white text-sm font-bold w-16 text-center rounded-full px-2 py-1 mr-4">19:00</span><span>렌터카 반납</span></li>
-                                <li class="flex items-start"><span class="bg-teal-600 text-white text-sm font-bold w-16 text-center rounded-full px-2 py-1 mr-4">19:30</span><span>공항 도착</span></li>
-                                <li class="flex items-start"><span class="bg-teal-600 text-white text-sm font-bold w-16 text-center rounded-full px-2 py-1 mr-4">20:45</span><span>제주 출발 (아시아나)</span></li>
-                                <li class="flex items-start"><span class="bg-teal-600 text-white text-sm font-bold w-16 text-center rounded-full px-2 py-1 mr-4">22:20</span><span>서울 도착</span></li>
-                            </ul>
-                        </div>
-                    </div>
-                </div>
-            </section>
-            
-            <!-- 필수 주의사항 섹션 -->
-            <section id="precautions" class="tab-content hidden">
-                <div class="bg-white p-6 rounded-xl shadow-md">
-                    <h2 class="text-2xl font-bold text-teal-700 mb-4">슬기로운 여행을 위한 필수 지식</h2>
-                    <p class="text-slate-600 mb-6">
-                        여행 중 발생할 수 있는 예상치 못한 상황을 방지하고, 더 스마트하게 여행을 즐길 수 있는 필수 정보들입니다. 각 항목을 클릭하여 자세한 내용을 확인하세요.
-                    </p>
-                    <div class="space-y-3">
-                        <!-- 아코디언 항목 -->
-                        <div class="accordion-item border rounded-lg">
-                            <button class="accordion-header w-full flex justify-between items-center p-4 text-left font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 transition">
-                                <span>✈️ 항공편 & 수하물 규정</span>
-                                <span class="accordion-icon transition-transform transform">▼</span>
-                            </button>
-                            <div class="accordion-content">
-                                <div class="p-4 text-sm text-slate-600 bg-white">
-                                    <p class="mb-2"><strong>핵심:</strong> 티웨이(15kg)와 아시아나(20kg)의 무료 위탁수하물 기준이 다릅니다. 추가요금을 피하려면 <strong>더 엄격한 15kg에 맞춰 짐을 준비</strong>하는 것이 가장 안전합니다.</p>
-                                    <p class="mb-2"><strong>기내 반입:</strong> 10kg 이하 1개 + 개인 소지품 1개는 동일합니다.</p>
-                                    <p><strong>보조배터리:</strong> 폭발 위험으로 <strong>절대 위탁수하물로 부칠 수 없으며, 반드시 기내에 직접 소지</strong>해야 합니다. (100Wh 이하, 보통 20,000mAh 이하)</p>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="accordion-item border rounded-lg">
-                            <button class="accordion-header w-full flex justify-between items-center p-4 text-left font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 transition">
-                                <span>🚗 렌터카 야간 인수 & 보험</span>
-                                <span class="accordion-icon transition-transform transform">▼</span>
-                            </button>
-                            <div class="accordion-content">
-                                <div class="p-4 text-sm text-slate-600 bg-white">
-                                    <p class="mb-2"><strong>야간 인수 위험:</strong> 대부분 렌터카 업체는 20시에 영업을 마감합니다. 21시 인수는 '야간 인수'로 추가 요금이 붙거나, 항공 지연 시 인수가 불가능할 수 있습니다. <strong>출발 전 업체에 전화해 최종 인수 가능 시간과 비상 대책을 꼭 확인해야 합니다.</strong></p>
-                                    <p><strong>완전자차 보험:</strong> 제주 렌터카의 '완전자차'는 자기부담금과 휴차보상료를 면제해주는 제도입니다. 하지만 타이어, 휠, 단독사고 등은 보장에서 제외되는 경우가 많으니 <strong>가입 시 보장 범위를 꼼꼼히 확인</strong>하는 것이 중요합니다. 빗길 운전이 많을 수 있으니 가급적 가입을 추천합니다.</p>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="accordion-item border rounded-lg">
-                            <button class="accordion-header w-full flex justify-between items-center p-4 text-left font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 transition">
-                                <span>🛡️ 국내 여행자 보험</span>
-                                <span class="accordion-icon transition-transform transform">▼</span>
-                            </button>
-                            <div class="accordion-content">
-                                 <div class="p-4 text-sm text-slate-600 bg-white">
-                                    <p class="mb-2"><strong>실손보험과 중복 확인:</strong> 국내 여행 중 병원 치료비는 대부분 개인 실손의료보험으로 처리됩니다. 여행자 보험과 중복 보장되지 않습니다.</p>
-                                    <p><strong>가입 가치:</strong> 여행자 보험의 핵심은 '휴대품 손해' 보장입니다. 액션캠 등 고가의 장비를 가져간다면 분실/파손에 대비해 가입을 고려해볼 수 있습니다. 그렇지 않다면 2박 3일 국내 여행에 필수적이지는 않습니다.</p>
-                                </div>
-                            </div>
-                        </div>
-                         <div class="accordion-item border rounded-lg">
-                            <button class="accordion-header w-full flex justify-between items-center p-4 text-left font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 transition">
-                                <span>🛍️ 제주 지정 면세점 활용법</span>
-                                <span class="accordion-icon transition-transform transform">▼</span>
-                            </button>
-                            <div class="accordion-content">
-                                 <div class="p-4 text-sm text-slate-600 bg-white">
-                                    <ul class="list-disc list-inside space-y-1">
-                                        <li><strong>구매 한도:</strong> 1인당 1회 $800 (연 6회)</li>
-                                        <li><strong>주류:</strong> $800 한도와 <strong>별도</strong>. 총 2병, 2L 이하, $400 이하</li>
-                                        <li><strong>담배:</strong> $800 한도와 <strong>별도</strong>. 1보루 (200개비)</li>
-                                    </ul>
-                                    <p class="mt-2">각자 한도를 활용하면 더욱 스마트한 쇼핑이 가능합니다.</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </section>
-            
-            <!-- 날씨 & 정보 섹션 -->
-            <section id="info" class="tab-content hidden">
-                <div class="bg-white p-6 rounded-xl shadow-md">
-                    <h2 class="text-2xl font-bold text-teal-700 mb-4">날씨 정보 & 준비물 리스트</h2>
-                    <p class="text-slate-600 mb-6">
-                        여행 기간 동안의 날씨를 예측하고, 그에 맞춰 필요한 준비물을 꼼꼼하게 챙길 수 있도록 도와주는 정보입니다.
-                    </p>
-                    
-                    <div class="mb-8">
-                        <h3 class="text-lg font-semibold text-slate-800 mb-2">🌦️ 6월 제주 날씨: 덥고 습한 장마철</h3>
-                        <p class="text-sm text-slate-600 mb-4">6월 말 제주는 본격적인 장마 기간입니다. 기온과 습도가 높고, 가벼운 소나기가 아닌 폭우가 내릴 수 있습니다. 아래 차트를 참고하여 날씨에 철저히 대비하세요.</p>
-                        <div class="chart-container">
-                            <canvas id="weatherChart"></canvas>
-                        </div>
-                    </div>
-                    
-                    <div>
-                        <h3 class="text-lg font-semibold text-slate-800 mb-3">🎒 보강된 준비물 리스트</h3>
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-4 text-sm">
-                            <ul class="space-y-2">
-                                <li class="flex items-center"><span class="text-teal-500 mr-2">✅</span><strong>신분증 (필수)</strong></li>
-                                <li class="flex items-center"><span class="text-teal-500 mr-2">✅</span><strong>기능성/속건성 의류 (여벌 포함)</strong></li>
-                                <li class="flex items-center"><span class="text-teal-500 mr-2">✅</span><strong>방수 기능 바람막이</strong></li>
-                                <li class="flex items-center"><span class="text-teal-500 mr-2">✅</span>속옷, 양말, 잠옷</li>
-                                <li class="flex items-center"><span class="text-teal-500 mr-2">✅</span>모자, 선크림</li>
-                                <li class="flex items-center"><span class="text-teal-500 mr-2">✅</span>수영용품 (수영복, 아쿠아슈즈 등)</li>
-                            </ul>
-                            <ul class="space-y-2">
-                                <li class="flex items-center"><span class="text-teal-500 mr-2">✅</span><strong>방수되는 신발 (샌들/운동화)</strong></li>
-                                <li class="flex items-center"><span class="text-teal-500 mr-2">✅</span><strong>개인 세면도구 (칫솔, 치약 등)</strong></li>
-                                <li class="flex items-center"><span class="text-teal-500 mr-2">✅</span>수건 (2개)</li>
-                                <li class="flex items-center"><span class="text-teal-500 mr-2">✅</span>우산, 우비</li>
-                                <li class="flex items-center"><span class="text-teal-500 mr-2">✅</span>상비약 & <strong>모기 기피제</strong></li>
-                                <li class="flex items-center"><span class="text-teal-500 mr-2">✅</span>보조배터리, 충전기, 액션캠</li>
-                            </ul>
-                        </div>
-                    </div>
-                </div>
-            </section>
-        </main>
-    </div>
+        <h3>28 일 (토)</h3>
+        <div class="schedule">
+            <div>11:00</div><div>브런치 — <span class="chip">오션뷰 카페</span> / <span class="chip">전복죽</span></div>
+            <div>12:00</div><div>협재해수욕장</div>
+            <div>14:00</div><div>점심 — <span class="chip">해물뚝배기</span> vs <span class="chip">흑돼지 근고기</span></div>
+            <div>15:00</div><div>관광 — <span class="chip">액티비티</span> vs <span class="chip">한림공원 산책</span></div>
+            <div>18:00</div><div>저녁 — <span class="chip">흑돼지 BBQ</span> vs <span class="chip">제철 회 / 갈치구이</span></div>
+            <div>22:00</div><div>숙소 귀환</div>
+        </div>
 
-<script>
-document.addEventListener('DOMContentLoaded', () => {
+        <h3>29 일 (일)</h3>
+        <div class="schedule">
+            <div>10:00</div><div>체크아웃</div>
+            <div>11:00</div><div>브런치 — <span class="chip">애월 카페</span> / <span class="chip">현지 국밥</span></div>
+            <div>13:00</div><div>점심 — <span class="chip">동문시장 먹거리</span> vs <span class="chip">갈치조림 정식</span></div>
+            <div>14:00</div><div>관광 — <span class="chip">용두암 산책</span> vs <span class="chip">카페·쇼핑</span></div>
+            <div>18:00</div><div>저녁 — <span class="chip">공항 근처 흑돼지</span> / <span class="chip">공항 식당가</span></div>
+            <div>18:30</div><div>렌터카 반납</div>
+            <div>20:45</div><div>제주 → 김포 (아시아나항공)</div>
+            <div>22:20</div><div>서울 도착</div>
+        </div>
+    </section>
 
-    const recommendationData = {
-        day1: {
-            dinner: {
-                option1: { 
-                    name: "더꽃돈 (흑돼지)",
-                    desc: "숙소에서 가깝고 23:30까지 영업. 두툼한 흑돼지로 든든한 첫 식사를 할 수 있는 곳.",
-                    info: "주소: 제주시 한림읍 협재1길 18-1"
-                },
-                option2: {
-                    name: "협재 라면상회 (해물라면)",
-                    desc: "새벽 3시까지 영업! 항공편이 지연돼도 걱정 없는 최고의 '안전 카드'. 밤바다 보며 먹는 라면 맛이 일품.",
-                    info: "주소: 제주시 한림읍 협재1길 1"
-                }
-            }
-        },
-        day2: {
-            lunch: {
-                option1: {
-                    name: "호텔샌드 / Osds (브런치)",
-                    desc: "협재 해변을 정면으로 보며 즐기는 감성 브런치. 트렌디한 인테리어와 맛있는 커피, 빵이 유명.",
-                    info: "분위기: 환상적인 오션뷰, 여유로움"
-                },
-                option2: {
-                    name: "운치 / 대문집 (갈치요리)",
-                    desc: "제주다운 든든한 한 끼. 바다를 보며 통갈치구이와 조림을 즐길 수 있는 현지 맛집.",
-                    info: "대표 메뉴: 통갈치구이, 갈치조림 세트"
-                }
-            },
-            activity: {
-                option1: {
-                    name: "투명 카약 체험",
-                    desc: "에메랄드빛 바다를 가장 가까이에서 즐기는 최고의 액티비티. 바닥이 투명한 카약 위에서 인생샷 가능.",
-                    info: "장소: 협재 해수욕장 내 업체 / 1인 약 1~1.5만원"
-                },
-                option2: {
-                    name: "한림공원 & 용암동굴",
-                    desc: "비가 오거나 너무 더울 때 완벽한 대안. 아름다운 식물원과 신비로운 협재굴/쌍용굴을 함께 탐험.",
-                    info: "입장료: 성인 15,000원 / 소요시간 약 2시간"
-                }
-            },
-            dinner: {
-                option1: {
-                    name: "문쏘 / 털보스협재밀 (퓨전)",
-                    desc: "창의적이고 새로운 제주 요리. BTS 지민 방문으로 유명한 황게카레, 성게알 김밥 등 특별한 메뉴.",
-                    info: "분위기: 독특한 컨셉, 사진 찍기 좋은 곳"
-                },
-                option2: {
-                    name: "제갈양 / 만민식당 (한식)",
-                    desc: "제주 본연의 맛을 깊이 있게 느낄 수 있는 현지인 맛집. 먹기 편한 순살 갈치조림과 푸짐한 해물탕.",
-                    info: "분위기: 현지인 맛집, 푸근함"
-                }
-            }
-        },
-        day3: {
-            lunch: {
-                option1: {
-                    name: "올래국수 / 자매국수 (고기국수)",
-                    desc: "제주를 떠나기 전 필수 코스. 진한 사골 육수와 두툼한 돔베고기가 어우러진 제주 대표 음식. (대기 길 수 있음)",
-                    info: "위치: 제주 시내 (공항 근처)"
-                },
-                option2: {
-                    name: "양식당 / 시분초 (캐주얼 양식)",
-                    desc: "편안하고 세련된 분위기에서 즐기는 마지막 식사. 제주 고사리 파스타 등 독창적인 메뉴가 있는 곳.",
-                    info: "위치: 공항 근처"
-                }
-            },
-            activity: {
-                option1: {
-                    name: "도두봉 오르기",
-                    desc: "공항 바로 옆, 5분이면 오르는 오름. 정상에서 제주 시내와 바다, 그리고 뜨고 내리는 비행기를 감상하는 최고의 뷰 맛집.",
-                    info: "비용: 무료 / 소요시간 약 30분"
-                },
-                option2: {
-                    name: "오설록 티 뮤지엄",
-                    desc: "제주 대표 랜드마크. 끝없이 펼쳐진 녹차밭에서 인생샷을 남기고, 시원한 녹차 아이스크림으로 휴식.",
-                    info: "비용: 입장료 무료 (카페 별도)"
-                }
-            }
-        }
-    };
+    <!-- 주의 사항 -->
+    <section id="caution">
+        <h2>주의 사항 ⚠️</h2>
 
-    const tabBtns = document.querySelectorAll('.tab-btn');
-    const tabContents = document.querySelectorAll('.tab-content');
+        <h3>비행기</h3>
+        <ul>
+            <li>신분증 필수, 모바일 신분증 + 배터리 여분</li>
+            <li>보조배터리·전자담배는 기내 반입만 가능</li>
+            <li>위탁 15 kg 초과 시 사전결제 권장</li>
+        </ul>
 
-    tabBtns.forEach(btn => {
-        btn.addEventListener('click', () => {
-            const targetTab = btn.dataset.tab;
+        <h3>야간 렌터카</h3>
+        <ul>
+            <li>항공 지연 시 렌터카 업체에 즉시 연락</li>
+            <li>전조등 상시 점등, 과속 카메라 주의</li>
+            <li>반납 전 주유 → 연료 미충족 벌금 방지</li>
+        </ul>
 
-            tabBtns.forEach(b => {
-                b.classList.remove('tab-active');
-                b.classList.add('tab-inactive');
-            });
-            btn.classList.add('tab-active');
-            btn.classList.remove('tab-inactive');
-            
-            tabContents.forEach(content => {
-                if (content.id === targetTab) {
-                    content.classList.remove('hidden');
-                } else {
-                    content.classList.add('hidden');
-                }
-            });
-        });
-    });
+        <h3>여행 보험</h3>
+        <ul>
+            <li>국내여행자보험 가입 시 휴대품·연착 보상</li>
+            <li>렌터카 자차 미포함 손해 대비</li>
+        </ul>
 
-    const recommendationBtns = document.querySelectorAll('.recommendation-btn');
-    
-    function updateRecommendationDetails(day, type, option) {
-        const detailsContainer = document.getElementById(`day${day}-${type}-details`);
-        const data = recommendationData[`day${day}`][type][option];
-        if (detailsContainer && data) {
-            detailsContainer.innerHTML = `
-                <h4 class="font-bold text-teal-800 mb-1">${data.name}</h4>
-                <p class="text-slate-600 mb-2">${data.desc}</p>
-                <p class="text-xs text-slate-500 font-semibold">${data.info}</p>
-            `;
-        }
-    }
+        <h3>면세 쇼핑</h3>
+        <ul>
+            <li>제주 국내선도 1인 $800 한도 면세</li>
+            <li>주류 2 병(2 ℓ 이내)·담배 200개비 별도</li>
+            <li>탑승 40분 전 보안검색 완료 후 이용 가능</li>
+        </ul>
+    </section>
+</main>
 
-    recommendationBtns.forEach(btn => {
-        btn.addEventListener('click', () => {
-            const day = btn.dataset.day;
-            const type = btn.dataset.type;
-            const option = btn.dataset.option;
-            
-            const siblingBtns = document.querySelectorAll(`.recommendation-btn[data-day='${day}'][data-type='${type}']`);
-            siblingBtns.forEach(b => {
-                b.classList.remove('recommendation-btn-active');
-                b.classList.add('recommendation-btn-inactive');
-            });
-            btn.classList.add('recommendation-btn-active');
-            btn.classList.remove('recommendation-btn-inactive');
-
-            updateRecommendationDetails(day, type, option);
-        });
-    });
-
-    function initializeRecommendations() {
-        const initialActiveBtns = document.querySelectorAll('.recommendation-btn-active');
-        initialActiveBtns.forEach(btn => {
-            const day = btn.dataset.day;
-            const type = btn.dataset.type;
-            const option = btn.dataset.option;
-            updateRecommendationDetails(day, type, option);
-        });
-    }
-
-    const accordionHeaders = document.querySelectorAll('.accordion-header');
-
-    accordionHeaders.forEach(header => {
-        header.addEventListener('click', () => {
-            const content = header.nextElementSibling;
-            const icon = header.querySelector('.accordion-icon');
-            
-            if (content.style.maxHeight) {
-                content.style.maxHeight = null;
-                icon.style.transform = 'rotate(0deg)';
-            } else {
-                content.style.maxHeight = content.scrollHeight + 'px';
-                icon.style.transform = 'rotate(180deg)';
-            }
-        });
-    });
-
-    const ctx = document.getElementById('weatherChart').getContext('2d');
-    new Chart(ctx, {
-        type: 'bar',
-        data: {
-            labels: ['평균기온(℃)', '최고기온(℃)', '강수량(mm)'],
-            datasets: [{
-                label: '6월 평년',
-                data: [21.7, 24.9, 171.2],
-                backgroundColor: 'rgba(59, 130, 246, 0.6)',
-                borderColor: 'rgba(59, 130, 246, 1)',
-                borderWidth: 1
-            }, {
-                label: '2024년 6월 (예상치 근사)',
-                data: [22.3, 25.5, 432.8],
-                backgroundColor: 'rgba(239, 68, 68, 0.6)',
-                borderColor: 'rgba(239, 68, 68, 1)',
-                borderWidth: 1
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                title: {
-                    display: true,
-                    text: '6월 제주 날씨 비교 (평년 vs 최근)',
-                    font: { size: 16 }
-                },
-                tooltip: {
-                    callbacks: {
-                        label: function(context) {
-                            let label = context.dataset.label || '';
-                            if (label) {
-                                label += ': ';
-                            }
-                            if (context.parsed.y !== null) {
-                                label += context.parsed.y + (context.label.includes('기온') ? '℃' : 'mm');
-                            }
-                            return label;
-                        }
-                    }
-                }
-            },
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    title: {
-                        display: true,
-                        text: '수치'
-                    }
-                }
-            }
-        }
-    });
-    
-    initializeRecommendations();
-});
-</script>
-
+<footer>
+    © 2025 제주 트립 가이드 | Netlify Drop
+</footer>
 </body>
 </html>
